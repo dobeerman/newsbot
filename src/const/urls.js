@@ -64,11 +64,13 @@ module.exports = {
   },
   // https://www.screenaware.com/en/blog/xml2js-sax-js-non-whitespace-before-first-tag
   // Error: Error: Non-whitespace before first tag.
-  // vestiprim: {
-  //   uri: "http://vestiprim.ru/rss.xml",
-  //   encoding: "utf8",
-  //   addlink: true
-  // }
+  vestiprim: {
+    uri: "http://vestiprim.ru/rss.xml",
+    encoding: "utf8",
+    addlink: true,
+    chat_id: "@news25r",
+    onair: false
+  },
   fish25: {
     uri: "https://fish25.ru/component/ninjarsssyndicator/?feed_id=1&format=raw",
     encoding: "utf8",
