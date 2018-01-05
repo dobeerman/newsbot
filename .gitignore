@@ -1,0 +1,6 @@
+node_modules/
+_.*
+.env
+
+yarn.*
+.DS_Store
