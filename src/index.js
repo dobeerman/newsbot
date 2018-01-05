@@ -20,6 +20,6 @@ app.get("/", (req, res) => {
   res.status(404).send("404 – File not found.");
 });
 
-app.listen(8000, () => {
-  console.log("App listening on port 8000!");
+app.listen(process.env.PORT || 8000, () => {
+  console.log(`Listening on port ${process.env.PORT}!`);
 });
