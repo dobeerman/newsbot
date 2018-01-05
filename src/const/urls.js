@@ -129,7 +129,7 @@ module.exports = {
   },
   otvprim: {
     uri: "http://otvprim.ru/rss.php",
-    encoding: "utf8",
+    encoding: "win1251",
     addlink: true,
     chat_id: "@news25r",
     onair: true
