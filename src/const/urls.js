@@ -66,7 +66,7 @@ module.exports = {
   // Error: Error: Non-whitespace before first tag.
   vestiprim: {
     uri: "http://vestiprim.ru/rss.xml",
-    encoding: "utf8",
+    encoding: "win1251",
     addlink: true,
     chat_id: "@news25r",
     onair: false
@@ -122,7 +122,7 @@ module.exports = {
   },
   sportprimorsky: {
     uri: "http://sportprimorsky.ru/rss.xml",
-    encoding: "utf8",
+    encoding: "win1251",
     addlink: true,
     chat_id: "@news25r",
     onair: true

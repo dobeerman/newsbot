@@ -100,13 +100,15 @@ const requestHttpAsync = source => {
   return new Promise((resolve, reject) => {
     try {
       protocol.get(source.uri, data => {
-        // console.log(data);
         data.pipe(iconv.decodeStream(source.encoding)).collect((err, xml) => {
           if (err) throw new Error(err);
 
           try {
             parser.parseString(xml, (err, result) => {
-              if (err) throw new Error(err);
+              if (err) {
+                console.log(source.handler, err.message);
+                throw new Error(err);
+              }
 
               if (result.rss.channel.item.length) {
                 // Result is array
