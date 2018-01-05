@@ -1,5 +1,6 @@
 const express = require("express"),
   fetchXML = express.Router(),
+  watchdog = require("../handlers/watchdog"),
   Promise = require("bluebird"),
   xml2js = require("xml2js"),
   iconv = require("iconv-lite"),
@@ -12,10 +13,8 @@ const express = require("express"),
     trim: require("lodash/trim")
   };
 
-const mongoose = require("mongoose");
 const Source = require("../model/source");
 const LastUpdate = require("../model/lastupdate");
-const Errors = require("../model/error");
 
 const sendMessages = require("../bot/sendmessages");
 
@@ -29,14 +28,14 @@ fetchXML.get("/SaveSecretPath", (req, res) => {
       await Object.keys(urls).forEach(key => {
         Source.findOneAndUpdate({ handler: key }, urls[key], {
           upsert: true
-        }).catch(error => Errors.create({ tag: "save handler", error }));
+        }).catch(error => watchdog("save handler", error.message));
       });
     } catch (e) {
       res.status(400).json({ e });
     }
   })()
     .then(data => res.status(200).json({ ok: true }))
-    .catch(error => res.status(400).json({ error }));
+    .catch(error => res.status(400).json({ error: error.message }));
 });
 
 fetchXML.get("/getall", (req, res) => {
@@ -62,7 +61,10 @@ fetchXML.get("/getall", (req, res) => {
           sendMessages(messages).then(count => res.status(200).json({ count }));
         });
     })
-    .catch(error => res.status(400).json({ error }));
+    .catch(error => {
+      watchdog("error", error.message);
+      res.status(400).json({ error: error.message });
+    });
 });
 
 fetchXML.get("/one/:handler", (req, res) => {
@@ -75,22 +77,21 @@ fetchXML.get("/one/:handler", (req, res) => {
           try {
             var xml = await requestHttpAsync(data);
 
-            // parser.parseString(xml, (err, result) => {
-            // if (err) throw new Error(err);
-
             res.status(200).json(xml);
-            // });
           } catch (error) {
-            Errors.create({ tag: handler, error });
-
-            res.status(400).json({ error });
+            watchdog("error", error.message);
+            res.status(400).json({ error: error.message });
           }
         })();
       } else {
+        watchdog("error", "Nothing to handle.");
         return res.status(400).json({ error: "Nothing to handle." });
       }
     })
-    .catch(error => res.status(400).json({ error }));
+    .catch(error => {
+      watchdog("error", error.message);
+      res.status(400).json({ error: error.message });
+    });
 });
 
 const requestHttpAsync = source => {
@@ -119,14 +120,12 @@ const requestHttpAsync = source => {
               resolve();
             });
           } catch (error) {
-            Errors.create({ tag: source.handler, error });
-            throw error;
+            reject(error);
           }
         });
       });
     } catch (error) {
-      Errors.create({ tag: source.handler, error });
-      throw error;
+      reject(error);
     }
   });
 };

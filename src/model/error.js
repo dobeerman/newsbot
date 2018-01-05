@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const schema = new mongoose.Schema(
   {
     tag: { type: String, required: true, index: true },
-    error: { type: String, required: true }
+    message: { type: String, required: true }
   },
   { timestamps: true }
 );

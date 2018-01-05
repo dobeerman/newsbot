@@ -1,5 +1,6 @@
 const request = require("request");
 const he = require("he");
+const watchdog = require("../handlers/watchdog");
 const _ = {
   trim: require("lodash/trim")
 };
@@ -16,14 +17,14 @@ const sendMessage = async (messages, chat_id) => {
         .then(data => {
           var res = JSON.parse(data.body);
           if (!res.ok) {
-            Errors.create({
-              tag: "send message",
-              error: [res.ok, res.error_code, res.description].join("\n")
-            });
+            watchdog(
+              "send message",
+              [res.ok, res.error_code, res.description].join("\n")
+            );
           }
           ok++;
         })
-        .catch(e => console.log(e));
+        .catch(e => watchdog("postAsync", e.message));
     }, i * 3050); // Set delay to 3.05 sec between messages to avoid 429 error. Ref: https://core.telegram.org/bots/faq#my-bot-is-hitting-limits-how-do-i-avoid-this
   });
   return ok;
