@@ -4,6 +4,10 @@
   "main": "src/index.js",
   "author": "dobeerman",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com:dobeerman/newsbot.git"
+  },
   "scripts": {
     "start": "node src/index.js",
     "devstart": "nodemon --exec node src/index.js"
