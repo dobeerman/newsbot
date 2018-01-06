@@ -89,7 +89,10 @@ fetchXML.get("/one/:handler", (req, res) => {
           }
         })();
       } else {
-        watchdog("error", "Nothing to handle.");
+        watchdog(
+          "error",
+          `Nothing to handle. handler: ${handler}, chat_id: ${chat_id}`
+        );
         return res
           .status(400)
           .json({ error: "Nothing to handle.", handler, chat_id });
