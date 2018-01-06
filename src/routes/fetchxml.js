@@ -39,7 +39,11 @@ fetchXML.get("/SaveSecretPath", (req, res) => {
 });
 
 fetchXML.get("/getall", (req, res) => {
-  Source.find({ onair: true })
+  const { chat_id } = req.query;
+
+  if (!chat_id) return res.status(400).json({ error: "No chat_id provided." });
+
+  Source.find({ chat_id, onair: true })
     .then(data => {
       const promises = data.map(o => requestHttpAsync(o));
 
@@ -68,9 +72,10 @@ fetchXML.get("/getall", (req, res) => {
 });
 
 fetchXML.get("/one/:handler", (req, res) => {
-  const handler = req.url.replace("/one/", "");
+  const { handler } = req.params;
+  const { chat_id } = req.query;
 
-  Source.findOne({ handler })
+  Source.findOne({ handler, chat_id })
     .then(data => {
       if (data) {
         (async () => {

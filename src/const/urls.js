@@ -184,5 +184,57 @@ module.exports = {
     addlink: true,
     chat_id: "@news27r",
     onair: true
+  },
+  khabararu: {
+    uri: "http://khabara.ru/rss.xml",
+    encoding: "win1251",
+    addlink: true,
+    chat_id: "@news27r",
+    onair: false
+  },
+  // error: "cat.replace is not a function"
+  bestmagazine: {
+    uri: "http://www.bestmagazine.ru/rss.xml",
+    encoding: "utf8",
+    addlink: true,
+    chat_id: "@news27r",
+    onair: false
+  },
+  dalenergy: {
+    uri: "http://dalenergy.ru/feed/",
+    encoding: "utf8",
+    addlink: true,
+    chat_id: "@news27r",
+    onair: false
+  },
+  // last update Feb 2013
+  boutiqueiq: {
+    uri: "http://boutique-iq.ru/feed/",
+    encoding: "utf8",
+    addlink: true,
+    chat_id: "@news27r",
+    onair: false
+  },
+  khabarovskmd: {
+    uri: "http://khabarovsk.md/rss.xml",
+    encoding: "win1251",
+    addlink: true,
+    chat_id: "@news27r",
+    onair: false
+  },
+  // error: "category.map is not a function"
+  amureco: {
+    uri: "http://www.amureco.ru/rss.xml",
+    encoding: "win1251",
+    addlink: true,
+    chat_id: "@news27r",
+    onair: false
+  },
+  khabvesti: {
+    uri: "http://khab-vesti.ru/rss.xml",
+    encoding: "utf8",
+    addlink: true,
+    chat_id: "@news27r",
+    onair: false
   }
 };
