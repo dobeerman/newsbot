@@ -162,6 +162,13 @@ module.exports = {
     chat_id: "@news25r",
     onair: true
   },
+  "25mchs": {
+    uri: "http://25.mchs.gov.ru/operationalpage/rss/",
+    encoding: "utf8",
+    addlink: true,
+    chat_id: "@news25r",
+    onair: true
+  },
   prosecutor: {
     uri: "http://prosecutor.ru/news/rss.php",
     encoding: "utf8",
@@ -177,7 +184,8 @@ module.exports = {
     onair: true
   },
   //
-  // Khabarkvsk
+  // Khabarkvsk ***************************
+  //
   amurmedia: {
     uri: "https://primamedia.gcdn.co/export/new/news_main77.rss",
     encoding: "utf8",
@@ -240,6 +248,48 @@ module.exports = {
   komcity: {
     uri: "http://www.komcity.ru/news.rss",
     encoding: "win1251",
+    addlink: true,
+    chat_id: "@news27r",
+    onair: false
+  },
+  mvd27: {
+    uri: "https://27.xn--b1aew.xn--p1ai/news/rss/",
+    encoding: "utf8",
+    addlink: true,
+    chat_id: "@news27r",
+    onair: false
+  },
+  dvnovosti: {
+    uri: "https://www.dvnovosti.ru/rss/",
+    encoding: "win1251",
+    addlink: true,
+    chat_id: "@news27r",
+    onair: false
+  },
+  "27r": {
+    uri: "https://27r.ru/news/khabarovsk?format=feed&type=rss",
+    encoding: "utf8",
+    addlink: true,
+    chat_id: "@news27r",
+    onair: false
+  },
+  khabkrai: {
+    uri: "https://www.khabkrai.ru/?menu=rss",
+    encoding: "utf8",
+    addlink: true,
+    chat_id: "@news27r",
+    onair: false
+  },
+  khabnews: {
+    uri: "http://khabnews.net/rss.xml",
+    encoding: "utf8",
+    addlink: true,
+    chat_id: "@news27r",
+    onair: false
+  },
+  "27mchs": {
+    uri: "http://27.mchs.gov.ru/operationalpage/rss/",
+    encoding: "utf8",
     addlink: true,
     chat_id: "@news27r",
     onair: false
