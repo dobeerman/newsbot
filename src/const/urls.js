@@ -140,5 +140,40 @@ module.exports = {
     addlink: true,
     chat_id: "@news25r",
     onair: false
+  },
+  mailru: {
+    uri: "https://news.mail.ru/rss/main/25/",
+    encoding: "utf8",
+    addlink: true,
+    chat_id: "@news25r",
+    onair: true
+  },
+  vladmedicina: {
+    uri: "http://vladmedicina.ru/news/rss.xml",
+    encoding: "utf8",
+    addlink: true,
+    chat_id: "@news25r",
+    onair: true
+  },
+  mvd: {
+    uri: "https://25.xn--b1aew.xn--p1ai/news/rss/",
+    encoding: "utf8",
+    addlink: true,
+    chat_id: "@news25r",
+    onair: true
+  },
+  prosecutor: {
+    uri: "http://prosecutor.ru/news/rss.php",
+    encoding: "utf8",
+    addlink: true,
+    chat_id: "@news25r",
+    onair: false
+  },
+  artemportal: {
+    uri: "https://artemportal.ru/news/rss.xml",
+    encoding: "utf8",
+    addlink: true,
+    chat_id: "@news25r",
+    onair: true
   }
 };

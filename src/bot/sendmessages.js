@@ -6,6 +6,7 @@ const _ = {
 };
 
 require("dotenv").config();
+const production = process.env.NODE_ENV === "production";
 
 const sendMessage = async (messages, chat_id) => {
   const len = messages.length - 1;
@@ -36,6 +37,8 @@ const postAsync = params => {
   }/sendMessage`;
 
   Object.assign(params, { url });
+
+  if (!production) Object.assign(params, { chat_id: `${params.chat_id}_dev` });
 
   return new Promise((resolve, reject) => {
     request.post(params, (err, response, data) => {
