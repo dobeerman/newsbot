@@ -15,7 +15,6 @@ const express = require("express"),
 
 const Source = require("../model/source");
 const LastUpdate = require("../model/lastupdate");
-
 const sendMessages = require("../bot/sendmessages");
 
 const parser = new xml2js.Parser({ explicitArray: false });
@@ -114,10 +113,10 @@ const requestHttpAsync = source => {
           if (err) throw new Error(err);
 
           try {
-            parser.parseString(xml, (err, result) => {
-              if (err) {
+            parser.parseString(xml, (error, result) => {
+              if (error) {
                 console.log(source.handler, err.message);
-                throw new Error(err);
+                throw new Error(error);
               }
 
               if (result.rss.channel.item.length) {
@@ -133,7 +132,7 @@ const requestHttpAsync = source => {
               resolve();
             });
           } catch (error) {
-            reject(error);
+            throw error;
           }
         });
       });
@@ -159,6 +158,9 @@ const makeMessage = (object, source) => {
 
   // Caterory can be empty
   category = category ? `#${category}` : "";
+
+  // 'komcity' sometime has description as object with _ property
+  if (description["_"]) description = description["_"];
 
   // Remove all html tags from description
   description = _.trim(description.replace(/[\s]<\/?[^>]+(>|$)/gi, ""));
