@@ -236,5 +236,12 @@ module.exports = {
     addlink: true,
     chat_id: "@news27r",
     onair: false
+  },
+  komcity: {
+    uri: "http://www.komcity.ru/news.rss",
+    encoding: "win1251",
+    addlink: true,
+    chat_id: "@news27r",
+    onair: false
   }
 };
