@@ -175,5 +175,14 @@ module.exports = {
     addlink: true,
     chat_id: "@news25r",
     onair: true
+  },
+  //
+  // Khabarkvsk
+  amurmedia: {
+    uri: "https://primamedia.gcdn.co/export/new/news_main77.rss",
+    encoding: "utf8",
+    addlink: true,
+    chat_id: "@news27r",
+    onair: true
   }
 };

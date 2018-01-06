@@ -113,31 +113,12 @@ const requestHttpAsync = source => {
               if (result.rss.channel.item.length) {
                 // Result is array
 
-                LastUpdate.findOneAndUpdate(
-                  { uid: "date" },
-                  { count: result.rss.channel.item.length }
-                ).then(obj => {
-                  const date = new Date(obj.updatedAt);
-
-                  resolve(
-                    result.rss.channel.item
-                      .filter(o => new Date(o.pubDate) > date)
-                      .map(o => makeMessage(o, source))
-                  );
-                });
-
-                // resolve(
-                //   result.rss.channel.item.map(o => makeMessage(o, source))
-                // );
+                resolve(
+                  result.rss.channel.item.map(o => makeMessage(o, source))
+                );
               } else {
                 // Result is a single element
-                LastUpdate.findOneAndUpdate(
-                  { uid: "date" },
-                  { count: result.rss.channel.item.length }
-                ).then(obj => {
-                  const date = new Date(obj.updatedAt);
-                  resolve(makeMessage(result.rss.channel.item, source));
-                });
+                resolve(makeMessage(result.rss.channel.item, source));
               }
               resolve();
             });

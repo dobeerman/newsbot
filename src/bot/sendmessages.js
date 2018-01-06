@@ -39,7 +39,7 @@ const postAsync = params => {
   Object.assign(params, { url });
 
   if (!production)
-    Object.assign(params.form, { chat_id: `${params.chat_id}_dev` });
+    Object.assign(params.form, { chat_id: `${params.form.chat_id}_dev` });
 
   return new Promise((resolve, reject) => {
     request.post(params, (err, response, data) => {
