@@ -115,7 +115,6 @@ const requestHttpAsync = source => {
           try {
             parser.parseString(xml, (error, result) => {
               if (error) {
-                console.log(source.handler, err.message);
                 throw new Error(error);
               }
 
