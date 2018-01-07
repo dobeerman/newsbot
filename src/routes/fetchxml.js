@@ -52,7 +52,7 @@ fetchXML.get("/getall", (req, res) => {
       Promise.all(promises)
         .then(o => o.reduce((pv, cv) => _.union(pv, cv), []))
         .then(reduced => {
-          LastUpdate.findOneAndUpdate(
+          return LastUpdate.findOneAndUpdate(
             { chat_id },
             { count: reduced.length },
             { upsert: true }
