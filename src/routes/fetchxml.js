@@ -52,11 +52,12 @@ fetchXML.get("/getall", (req, res) => {
       Promise.all(promises)
         .then(o => o.reduce((pv, cv) => _.union(pv, cv), []))
         .then(reduced => {
-          return LastUpdate.findOneAndUpdate(
-            { uid: "date" },
-            { count: reduced.length }
+          LastUpdate.findOneAndUpdate(
+            { chat_id },
+            { count: reduced.length },
+            { upsert: true }
           ).then(obj => {
-            const date = new Date(obj.updatedAt);
+            const date = obj ? new Date(obj.updatedAt) : new Date();
             return reduced.filter(o => new Date(o.pubDate) > date);
           });
         })

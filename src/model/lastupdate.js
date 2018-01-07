@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const schema = new mongoose.Schema(
   {
     count: Number,
+    chat_id: { type: String, require: true },
     lastUpdate: { type: Date, default: Date.now }
   },
   { timestamps: true }
