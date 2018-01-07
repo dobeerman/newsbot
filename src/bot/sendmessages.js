@@ -18,9 +18,16 @@ const sendMessage = async (messages, chat_id) => {
         .then(data => {
           var res = JSON.parse(data.body);
           if (!res.ok) {
+            console.log(res.result);
             watchdog(
               "send message",
-              [res.ok, res.error_code, res.description].join("\n")
+              [
+                process.env.DEV_CHAT,
+                res.result.chat.id,
+                res.ok,
+                res.error_code,
+                res.description
+              ].join("\n")
             );
           }
           ok++;
