@@ -20,7 +20,10 @@ const sendMessages = require("../bot/sendmessages");
 const parser = new xml2js.Parser({ explicitArray: false });
 
 fetchXML.get("/SaveSecretPath", (req, res) => {
-  const urls = require("../const/urls");
+  const { chat_id } = req.query;
+  const urls = require("../const")(chat_id);
+
+  if (urls.error) return res.status(400).json(urls);
 
   (async () => {
     try {
@@ -115,7 +118,7 @@ const requestHttpAsync = source => {
           try {
             parser.parseString(xml, (error, result) => {
               if (error) {
-                console.log(source.handler, err.message);
+                console.log(source.handler, error.message);
                 throw new Error(error);
               }
 
