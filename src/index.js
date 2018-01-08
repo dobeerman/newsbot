@@ -2,7 +2,9 @@ const express = require("express"),
   app = express(),
   bodyParser = require("body-parser"),
   // i18n middleware
-  i18n = require("i18n"),
+  i18next = require("i18next"),
+  i18nextMiddleware = require("i18next-express-middleware"),
+  Backend = require("i18next-node-fs-backend"),
   // Routers
   fetchXML = require("./routes/fetchxml"),
   fetchWeather = require("./routes/weather");
@@ -10,14 +12,20 @@ const express = require("express"),
 // .env
 require("dotenv").config();
 
-i18n.configure({
-  locales: ["ru"],
-  directory: __dirname + "/locales",
-  api: {
-    __: "t", //now req.__ becomes req.t
-    __n: "tn" //and req.__n can be called as req.tn
-  }
-});
+i18next
+  .use(Backend)
+  .use(i18nextMiddleware.LanguageDetector)
+  .init({
+    lng: "ru",
+    backend: {
+      loadPath: __dirname + "/locales/{{lng}}/{{ns}}.json",
+      addPath: __dirname + "/locales/{{lng}}/{{ns}}.missing.json"
+    },
+    fallbackLng: "ru",
+    preload: ["ru"],
+    saveMissing: true,
+    debug: false
+  });
 
 const mongoose = require("mongoose");
 mongoose.Promise = Promise;
@@ -26,7 +34,7 @@ mongoose.connect(process.env.MONGODB_URL);
 // app
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(i18n.init);
+app.use(i18nextMiddleware.handle(i18next));
 app.use("/api/v1/xml", fetchXML);
 app.use("/api/v1/weather", fetchWeather);
 
