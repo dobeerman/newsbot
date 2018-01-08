@@ -31,5 +31,7 @@
   "precipitation_8": "гроза",
   "precipitation_10": "без осадков",
   "ForecastMessage":
-    "*{{period}}*\n{{phenomena}}\n{{temperature}}\n{{pressure}}\n{{relwet}}\n{{wind}}\n{{heat}}"
+    "*{{period}}*\n{{phenomena}}\n{{temperature}}\n{{pressure}}\n{{relwet}}\n{{wind}}\n{{heat}}",
+  "CBRMessage": "{{CharCode}}: {{Value}} за {{Nominal}} {{Name}}",
+  "CBRdate": "#Валюта на {{date}}"
 }

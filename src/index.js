@@ -7,7 +7,8 @@ const express = require("express"),
   Backend = require("i18next-node-fs-backend"),
   // Routers
   fetchXML = require("./routes/fetchxml"),
-  fetchWeather = require("./routes/weather");
+  fetchWeather = require("./routes/weather"),
+  fetchCBR = require("./routes/cbr");
 
 // .env
 require("dotenv").config();
@@ -37,6 +38,7 @@ app.use(bodyParser.json());
 app.use(i18nextMiddleware.handle(i18next));
 app.use("/api/v1/xml", fetchXML);
 app.use("/api/v1/weather", fetchWeather);
+app.use("/api/v1/cbr", fetchCBR);
 
 app.get("/", (req, res) => {
   res.status(404).send("404 – File not found.");
