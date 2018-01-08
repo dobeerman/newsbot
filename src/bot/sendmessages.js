@@ -1,9 +1,5 @@
 const request = require("request");
-const he = require("he");
 const watchdog = require("../handlers/watchdog");
-const _ = {
-  trim: require("lodash/trim")
-};
 
 require("dotenv").config();
 const production = process.env.NODE_ENV === "production";
