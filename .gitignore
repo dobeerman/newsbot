@@ -6,3 +6,4 @@ _.*
 yarn.*
 .DS_Store
 package-lock.json
+test*
