@@ -1,54 +1,37 @@
 const express = require("express"),
+  request = require("request"),
   fetchWeather = express.Router(),
   watchdog = require("../handlers/watchdog"),
   Promise = require("bluebird"),
   xml2js = require("xml2js"),
-  format = require("date-fns/format"),
-  ruLocale = require("date-fns/locale/ru"),
   https = require("https");
 
-const parser = new xml2js.Parser({ explicitArray: false });
+const ForecastMessages = require("../class/ForecastMessages");
 
-fetchWeather.get("/:point", (req, res) => {
-  const { point } = req.params;
+const parser = new xml2js.Parser({ explicitArray: false });
+const production = process.env.NODE_ENV === "production";
+
+fetchWeather.get("/:point/:chat_id", (req, res) => {
+  var { point, chat_id } = req.params;
+  var { parse_mode } = req.query;
+
+  parse_mode = parse_mode || "Markdown";
+
   const url = `https://xml.meteoservice.ru/export/gismeteo/point/${point}.xml`;
 
-  requestHttpAsync(url).then(xml => {
-    const report = xml.MMWEATHER.REPORT.TOWN;
-    var { $: { sname: city }, FORECAST } = report;
-    city = decodeURI(city);
+  requestHttpAsync(url)
+    .then(json => {
+      if (json.error) return res.status(400).json({ error: json.error });
 
-    // const messageMaker = async (city, FORECAST) => {
+      const forecast = new ForecastMessages(json);
 
-    /*
-    <FORECAST day="07" month="01" year="2018" hour="21" tod="3" predict="0" weekday="1">
-    <PHENOMENA cloudiness="2" precipitation="10" rpower="0" spower="0"/>
-    <PRESSURE max="764" min="764"/>
-    <TEMPERATURE max="-9" min="-11"/>
-    <WIND min="5" max="5" direction="5"/>
-    <RELWET max="92" min="71"/>
-    <HEAT min="-18" max="-18"/>
-    </FORECAST>
-  */
-    const messages = FORECAST.map(o => {
-      var tod = res.tn("forecast", o["$"].tod * 1);
-      var weekday = res.tn("weekday", o["$"].weekday * 1);
-      var date = format(
-        new Date(o["$"].year * 1, o["$"].month - 1, o["$"].day * 1),
-        "D MMMM",
-        { locale: ruLocale }
-      );
-
-      var message = [`${city}. ${tod}`, `${date}. ${weekday}.`];
-      return message.join("\n");
-    });
-    // };
-    // messageMaker(city, FORECAST).then(messages =>
-    res.status(200).json({ messages });
-    // );
-
-    // .json({ message: res.__("Hello, {{city}}", { city: decodeURI(city) }) });
-  });
+      forecast
+        .getXML()
+        .then(text => sendMessage({ form: { chat_id, text, parse_mode } }))
+        .then(data => res.status(200).json(data))
+        .catch(error => res.status(400).json({ error: error.message }));
+    })
+    .catch(error => res.status(400).json({ error: error.message }));
 });
 
 const requestHttpAsync = source => {
@@ -58,22 +41,37 @@ const requestHttpAsync = source => {
         .get(source, res => {
           res.on("data", chunk => {
             parser.parseString(chunk, (error, xml) => {
-              if (error) throw error;
+              if (error) reject(error.message);
+
               resolve(xml);
             });
           });
         })
         .on("error", error => {
-          throw new Error("Got error: " + error.message);
+          reject(error.message);
         });
     } catch (error) {
       reject(error);
     }
+  }).catch(error => {
+    return { error };
   });
 };
 
-const makeMessage = xml => {
-  // decodeURI(city)
+const sendMessage = async params => {
+  const url = `https://api.telegram.org/bot${
+    process.env.BOT_TOKEN
+  }/sendMessage`;
+
+  Object.assign(params, { url });
+  if (!production)
+    Object.assign(params.form, { chat_id: process.env.DEV_CHAT });
+
+  return await request.post(params, (error, response, data) => {
+    if (error) throw error;
+
+    return data;
+  });
 };
 
 module.exports = fetchWeather;
