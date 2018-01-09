@@ -19,31 +19,27 @@ fetchCBR.get("/:chat_id", (req, res) => {
 
   parse_mode = parse_mode || "Markdown";
 
-  const now = new Date();
+  CBR.findOneAndUpdate({ chat_id }, { chat_id }, { upsert: true, new: true })
+    .then(doc => {
+      const now = new Date(),
+        utc = now.getTime() + now.getTimezoneOffset() * 60000,
+        localdate = new Date(utc + 3600000 * doc.timeoffset),
+        url = `http://www.cbr.ru/scripts/XML_daily.asp?date_req=${format(
+          localdate,
+          "DD/MM/YYYY"
+        )}`;
 
-  const url = `http://www.cbr.ru/scripts/XML_daily.asp?date_req=${format(
-    now,
-    "DD/MM/YYYY"
-  )}`;
+      requestHttpAsync(url)
+        .then(json => {
+          if (json.error) return res.status(400).json({ error: json.error });
 
-  requestHttpAsync(url)
-    .then(json => {
-      if (json.error) return res.status(400).json({ error: json.error });
-
-      CBR.findOneAndUpdate(
-        { chat_id },
-        { chat_id },
-        { upsert: true, new: true }
-      )
-        .then(
-          doc =>
-            new CbrMessages(
-              json.ValCurs.Valute.filter(
-                el => doc.Valutes.indexOf(el.NumCode) > -1
-              ),
-              now
-            )
-        )
+          return new CbrMessages(
+            json.ValCurs.Valute.filter(
+              el => doc.Valutes.indexOf(el.NumCode) > -1
+            ),
+            localdate
+          );
+        })
         .then(cbr => cbr.getXML())
         .then(text => sendMessage({ form: { chat_id, text, parse_mode } }))
         .then(data => res.status(200).json({ data }))

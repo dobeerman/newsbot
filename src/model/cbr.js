@@ -10,7 +10,8 @@ const schema = new mongoose.Schema({
       "840", // USD
       "978" // EUR
     ]
-  }
+  },
+  timeoffset: { type: Number, require: true, default: 10 }
 });
 
 module.exports = mongoose.model("CBR", schema, "cbr");
