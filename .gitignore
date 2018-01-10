@@ -3,7 +3,7 @@ const/
 _.*
 .env
 
-yarn.*
+yarn*
 .DS_Store
 package-lock.json
 test*
