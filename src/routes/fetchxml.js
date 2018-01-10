@@ -173,11 +173,16 @@ const makeMessage = (object, source) => {
   if (markup && markup.description) {
     // Unescape all HTML entities to readable format
     const entities = new Html5Entities();
-    if (handler === "zrpress") description.replace("amp;", "");
+    if (handler === "zrpress") object[markup.description].replace("amp;", "");
 
-    description = entities
-      .decode(object[markup.description])
-      .replace(/\t/g, "\n");
+    // MESSAGE_TOO_LONG: Message was too long. Current maximum length is 4096 UTF8 characters
+    // Reference: https://core.telegram.org/method/messages.sendMessage
+    const TextInBytes = 3 * object[markup.description].length / 4;
+
+    description =
+      TextInBytes < 4096
+        ? entities.decode(object[markup.description]).replace(/\t/g, "\n")
+        : description;
   }
 
   // Some sources has description as an object with lodash property
