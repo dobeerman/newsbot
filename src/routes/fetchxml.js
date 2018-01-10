@@ -11,7 +11,8 @@ const express = require("express"),
     union: require("lodash/union"),
     sortBy: require("lodash/sortBy"),
     trim: require("lodash/trim")
-  };
+  },
+  Html5Entities = require("html-entities").Html5Entities;
 
 const Source = require("../model/source");
 const LastUpdate = require("../model/lastupdate");
@@ -84,7 +85,6 @@ fetchXML.get("/one/:handler", (req, res) => {
         (async () => {
           try {
             var xml = await requestHttpAsync(data);
-
             res.status(200).json(xml);
           } catch (error) {
             watchdog("error", error.message);
@@ -124,7 +124,6 @@ const requestHttpAsync = source => {
 
               if (result.rss.channel.item.length) {
                 // Result is array
-
                 resolve(
                   result.rss.channel.item.map(o => makeMessage(o, source))
                 );
@@ -147,7 +146,7 @@ const requestHttpAsync = source => {
 
 const makeMessage = (object, source) => {
   var { title, description, category, link, pubDate } = object;
-  var { addlink, handler, chat_id } = source;
+  var { addlink, handler, chat_id, markup } = source;
 
   if (typeof category === "object") {
     if (handler === "ytrorossii") category.shift();
@@ -162,16 +161,31 @@ const makeMessage = (object, source) => {
   // Caterory can be empty
   category = category ? `#${category}` : "";
 
-  // 'komcity' sometime has description as object with _ property
+  // Replace the description with another field of xml object
+  if (markup && markup.description) {
+    // Unescape all HTML entities to readable format
+    const entities = new Html5Entities();
+    description = entities.decode(object[markup.description]);
+  }
+
+  // Some sources has description as an object with lodash property
   if (description["_"]) description = description["_"];
 
-  // Remove all html tags from description
-  description = _.trim(description.replace(/[\s]<\/?[^>]+(>|$)/gi, ""));
+  // Remove all html tags from the description
+  description = _.trim(description.replace(/<(?:.|\n)*?>/gm, ""));
+
+  // Cut off the unnecessary end of the string
+  if (markup && markup.cut_text) {
+    var idx = description.indexOf(markup.cut_text);
+    description = idx > -1 ? description.slice(0, idx) : description;
+  }
+
+  // enclosure
 
   // Text constructor
   const textParts = [
     `${title}`,
-    `${he.decode(description.replace(/<(?:.|\n)*?>/gm, ""))}`,
+    `${he.decode(description)}`,
     `${category} #${handler}`
   ];
 
@@ -180,7 +194,13 @@ const makeMessage = (object, source) => {
   // Make the text string
   const text = textParts.join(`\n\n`);
 
-  return { form: { chat_id, text, parse_mode: "HTML" }, pubDate };
+  var params = { form: { chat_id, text, parse_mode: "HTML" }, pubDate };
+
+  if (markup && markup.message_options) {
+    Object.assign(params.form, markup.message_options);
+  }
+
+  return params;
 };
 
 module.exports = fetchXML;

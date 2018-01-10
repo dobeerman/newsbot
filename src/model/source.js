@@ -13,7 +13,8 @@ const schema = new mongoose.Schema({
   encoding: { type: String, required: true, default: "utf8" },
   addlink: { type: Boolean, required: true, default: true },
   chat_id: { type: String, required: true },
-  onair: { type: Boolean, required: true, default: true }
+  onair: { type: Boolean, required: true, default: true },
+  markup: { type: Object }
 });
 
 // schema.methods.done = function(ctx) {
