@@ -85,7 +85,9 @@ fetchXML.get("/one/:handler", (req, res) => {
         (async () => {
           try {
             var xml = await requestHttpAsync(data);
-            res.status(200).json(xml);
+            // return res.json([xml[0]]);
+            sendMessages([xml[0]]).then(c => res.status(200).json(xml));
+            // res.status(200).json(xml);
           } catch (error) {
             watchdog("error", error.message);
             res.status(400).json({ error: error.message });
@@ -161,18 +163,29 @@ const makeMessage = (object, source) => {
   // Caterory can be empty
   category = category ? `#${category}` : "";
 
+  // Some sources has no description tag in some items
+  // Just fix this issue
+  description = description || "";
+
   // Replace the description with another field of xml object
   if (markup && markup.description) {
     // Unescape all HTML entities to readable format
     const entities = new Html5Entities();
-    description = entities.decode(object[markup.description]);
+    if (handler === "zrpress") description.replace("amp;", "");
+
+    description = entities
+      .decode(object[markup.description])
+      .replace(/\t/g, "\n");
   }
 
   // Some sources has description as an object with lodash property
-  if (description["_"]) description = description["_"];
+  if (description._) description = description._;
 
   // Remove all html tags from the description
-  description = _.trim(description.replace(/<(?:.|\n)*?>/gm, ""));
+  description = description
+    .replace(/(<\/p>\s*|\n*<p>)/gm, "\n")
+    .replace(/<(?:.|\n)*?>/gm, "")
+    .trim();
 
   // Cut off the unnecessary end of the string
   if (markup && markup.cut_text) {
