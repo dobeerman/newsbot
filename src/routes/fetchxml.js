@@ -150,14 +150,16 @@ const makeMessage = (object, source) => {
   var { title, description, category, link, pubDate } = object;
   var { addlink, handler, chat_id, markup } = source;
 
+  if (category && category.indexOf("/") > -1) {
+    category = category.split("/").filter(el => el.trim());
+  }
+
   if (typeof category === "object") {
     if (handler === "ytrorossii") category.shift();
 
-    category = category
-      .map(cat => cat.replace(/[^A-Za-zА-ЯЁёа-я0-9]/gm, ""))
-      .join(" #");
+    category = category.map(cat => removeNonalphaBetical(cat)).join(" #");
   } else if (category) {
-    category = category.replace(/[^A-Za-zА-ЯЁёа-я0-9]/gm, "");
+    category = removeNonalphaBetical(category); //.replace(/[^A-Za-zА-ЯЁёа-я0-9]/gm, "");
   }
 
   // Caterory can be empty
@@ -183,7 +185,7 @@ const makeMessage = (object, source) => {
 
   // Remove all html tags from the description
   description = description
-    .replace(/(<\/p>\s*|\n*<p>)/gm, "\n")
+    .replace(/(<br\s*\/>)|(<\/p>\s*|\n*<p>)/gm, "\n") // Paragraph
     .replace(/<(?:.|\n)*?>/gm, "")
     .trim();
 
@@ -215,5 +217,9 @@ const makeMessage = (object, source) => {
 
   return params;
 };
+
+// Remove all spaces and non-alphabetical or digit symbols
+const removeNonalphaBetical = string =>
+  string.replace(/[^A-Za-zА-ЯЁёа-я0-9]/gm, "");
 
 module.exports = fetchXML;
