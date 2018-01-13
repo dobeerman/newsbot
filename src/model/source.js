@@ -14,7 +14,17 @@ const schema = new mongoose.Schema({
   addlink: { type: Boolean, required: true, default: true },
   chat_id: { type: String, required: true },
   onair: { type: Boolean, required: true, default: true },
-  markup: { type: Object }
+  markup: {
+    type: Object,
+    required: true,
+    default: {
+      description: "description",
+      message_options: {
+        parse_mode: "HTML",
+        disable_web_page_preview: false
+      }
+    }
+  }
 });
 
 // schema.methods.done = function(ctx) {

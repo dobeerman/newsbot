@@ -6,17 +6,14 @@ const express = require("express"),
   iconv = require("iconv-lite"),
   https = require("https"),
   http = require("http"),
-  he = require("he"),
   _ = {
-    union: require("lodash/union"),
-    sortBy: require("lodash/sortBy"),
-    trim: require("lodash/trim")
-  },
-  Html5Entities = require("html-entities").Html5Entities;
+    union: require("lodash/union")
+  };
 
 const Source = require("../model/source");
 const LastUpdate = require("../model/lastupdate");
 const sendMessages = require("../bot/sendmessages");
+const Markup = require("../class/Markup");
 
 const parser = new xml2js.Parser({ explicitArray: false });
 
@@ -44,14 +41,16 @@ fetchXML.get("/SaveSecretPath", (req, res) => {
 fetchXML.get("/getall", (req, res) => {
   const { chat_id } = req.query;
 
-  if (!chat_id) return res.status(400).json({ error: "No chat_id provided." });
+  if (!chat_id) return res.status(400).json({ error: "No Chat ID provided." });
 
   Source.find({ chat_id, onair: true })
-    .then(data => {
-      const promises = data.map(o => requestHttpAsync(o));
+    .then(sources => {
+      const promises = sources.map(o =>
+        requestPromise(o).catch(error => console.log("requestPromise", error))
+      );
 
       Promise.all(promises)
-        .then(o => o.reduce((pv, cv) => _.union(pv, cv), []))
+        .then(o => o.reduce((pv, cv) => cv && _.union(pv, cv.messages), []))
         .then(reduced => {
           return LastUpdate.findOneAndUpdate(
             { chat_id },
@@ -61,9 +60,6 @@ fetchXML.get("/getall", (req, res) => {
             const date = obj ? new Date(obj.updatedAt) : new Date();
             return reduced.filter(o => new Date(o.pubDate) > date);
           });
-        })
-        .then(filtered => {
-          return _.sortBy(filtered, [o => new Date(o.pubDate)]);
         })
         .then(messages => {
           sendMessages(messages).then(count => res.status(200).json({ count }));
@@ -80,60 +76,52 @@ fetchXML.get("/one/:handler", (req, res) => {
   const { chat_id } = req.query;
 
   Source.findOne({ handler, chat_id })
-    .then(data => {
-      if (data) {
-        (async () => {
-          try {
-            var xml = await requestHttpAsync(data);
-            // return res.json([xml[0]]);
-            sendMessages([xml[0]]).then(c => res.status(200).json(xml));
-            // res.status(200).json(xml);
-          } catch (error) {
-            watchdog("error", error.message);
-            res.status(400).json({ error: error.message });
-          }
-        })();
-      } else {
-        watchdog(
-          "error",
-          `Nothing to handle. handler: ${handler}, chat_id: ${chat_id}`
-        );
-        return res
-          .status(400)
-          .json({ error: "Nothing to handle.", handler, chat_id });
-      }
+    .then(opts => {
+      if (!opts) throw new Error("Nothing to handle.");
+
+      (async () => {
+        try {
+          await requestPromise(opts)
+            .then(result => {
+              const messages = Markup.messages(result.rss.channel.item, opts);
+
+              sendMessages([messages.messages[0]]).then(() =>
+                res.status(200).json(messages)
+              );
+            })
+            .catch(error => {
+              throw error;
+            });
+        } catch (error) {
+          console.log(error);
+          res.status(400).json({ error: error.message });
+        }
+      })();
     })
     .catch(error => {
-      watchdog("error", error.message);
+      console.log(error);
       res.status(400).json({ error: error.message });
     });
 });
 
-const requestHttpAsync = source => {
-  const protocol = source.uri.indexOf("https") > -1 ? https : http;
-
-  return new Promise((resolve, reject) => {
+const requestPromise = source =>
+  new Promise((resolve, reject) => {
+    const protocol = source.uri.indexOf("https") > -1 ? https : http;
     try {
       protocol.get(source.uri, data => {
         data.pipe(iconv.decodeStream(source.encoding)).collect((err, xml) => {
-          if (err) throw new Error(err);
+          if (err) throw err;
 
           try {
             parser.parseString(xml, (error, result) => {
-              if (error) {
-                throw new Error(error);
-              }
+              if (error) throw error;
 
-              if (result.rss.channel.item.length) {
-                // Result is array
-                resolve(
-                  result.rss.channel.item.map(o => makeMessage(o, source))
-                );
-              } else {
-                // Result is a single element
-                resolve(makeMessage(result.rss.channel.item, source));
-              }
-              resolve();
+              if (result.html) return reject();
+
+              if (!Array.isArray(result.rss.channel.item))
+                result.rss.channel.item = [result.rss.channel.item];
+
+              resolve(Markup.messages(result.rss.channel.item, source));
             });
           } catch (error) {
             throw error;
@@ -144,87 +132,8 @@ const requestHttpAsync = source => {
       reject(error);
     }
   });
-};
 
-const makeMessage = (object, source) => {
-  var { title, description, category, link, pubDate } = object;
-  var { addlink, handler, chat_id, markup } = source;
-
-  if (category && category.indexOf("/") > -1) {
-    category = category.split("/").filter(el => el.trim());
-  }
-
-  if (typeof category === "object") {
-    if (handler === "ytrorossii") category.shift();
-
-    category = category.map(cat => removeNonalphaBetical(cat)).join(" #");
-  } else if (category) {
-    category = removeNonalphaBetical(category); //.replace(/[^A-Za-zА-ЯЁёа-я0-9]/gm, "");
-  }
-
-  // Caterory can be empty
-  category = category ? `#${category}` : "";
-
-  // Some sources has no description tag in some items
-  // Just fix this issue
-  description = description || "";
-
-  // Replace the description with another field of xml object
-  if (markup && markup.description) {
-    // Unescape all HTML entities to readable format
-    const entities = new Html5Entities();
-    if (handler === "zrpress") object[markup.description].replace("amp;", "");
-
-    // MESSAGE_TOO_LONG: Message was too long. Current maximum length is 4096 UTF8 characters
-    // Reference: https://core.telegram.org/method/messages.sendMessage
-    const TextInBytes = 3 * object[markup.description].length / 4;
-
-    description =
-      TextInBytes < 4096
-        ? entities.decode(object[markup.description]).replace(/\t/g, "\n")
-        : description;
-  }
-
-  // Some sources has description as an object with lodash property
-  if (description._) description = description._;
-
-  // Remove all html tags from the description
-  description = description
-    .replace(/(<br\s*\/>)|(<\/p>\s*|\n*<p>)/gm, "\n") // Paragraph
-    .replace(/<(?:.|\n)*?>/gm, "")
-    .trim();
-
-  // Cut off the unnecessary end of the string
-  if (markup && markup.cut_text) {
-    var idx = description.indexOf(markup.cut_text);
-    description = idx > -1 ? description.slice(0, idx) : description;
-  }
-
-  // enclosure
-
-  // Text constructor
-  const textParts = [
-    `${title}`,
-    `${he.decode(description)}`,
-    `${category} #${handler}`
-  ];
-
-  if (addlink) textParts.push(link);
-
-  // Make the text string
-  const text = textParts.join(`\n\n`);
-
-  var params = { form: { chat_id, text, parse_mode: "HTML" }, pubDate };
-
-  if (markup && markup.message_options) {
-    Object.assign(params.form, markup.message_options);
-  }
-
-  return params;
-};
-
-// Remove all spaces and non-alphabetical or digit symbols
-const removeNonalphaBetical = string =>
-  string.replace(/[^A-Za-zА-ЯЁёа-я0-9]/gm, "");
+const _has = (from, selector) =>
+  selector.split(".").reduce((prev, cur) => prev && prev[cur], from);
 
 module.exports = fetchXML;
