@@ -103,14 +103,14 @@ function getDescription(element, options) {
 function getCategory(element, handler) {
   var { category } = element;
 
-  if (!category) category = [];
-
-  category.unshift(handler);
+  if (!category) category = "";
 
   if (category.indexOf("/") > -1)
     category = category.split("/").filter(el => el.trim());
 
   if (!Array.isArray(category)) category = [category];
+
+  category.unshift(handler);
 
   category = "#" + category.map(el => removeNonAlphaBetical(el)).join(" #");
 
