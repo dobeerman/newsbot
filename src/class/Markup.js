@@ -101,9 +101,9 @@ function getDescription(element, options) {
 }
 
 function getCategory(element, handler) {
-  var { category } = element;
+  if (!element.category) element.category = [];
 
-  if (!category) category = "";
+  var { category } = element;
 
   if (category.indexOf("/") > -1)
     category = category.split("/").filter(el => el.trim());
