@@ -14,6 +14,7 @@ const schema = new mongoose.Schema({
   addlink: { type: Boolean, required: true, default: true },
   chat_id: { type: String, required: true },
   onair: { type: Boolean, required: true, default: true },
+  updated: { type: Date },
   markup: {
     type: Object,
     required: true,

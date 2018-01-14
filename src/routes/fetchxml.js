@@ -50,19 +50,11 @@ fetchXML.get("/getall", (req, res) => {
       );
 
       Promise.all(promises)
-        .then(o => o.reduce((pv, cv) => cv && _.union(pv, cv.messages), []))
-        .then(reduced => {
-          return LastUpdate.findOneAndUpdate(
-            { chat_id },
-            { count: reduced.length },
-            { upsert: true }
-          ).then(obj => {
-            const date = obj ? new Date(obj.updatedAt) : new Date();
-            return reduced.filter(o => new Date(o.pubDate) > date);
-          });
-        })
+        .then(o => o.reduce((pv, cv) => cv && union(pv, cv.messages), []))
         .then(messages => {
-          sendMessages(messages).then(count => res.status(200).json({ count }));
+          sendMessages(messages).then(count =>
+            res.status(200).json({ ok: true })
+          );
         });
     })
     .catch(error => {
@@ -116,12 +108,29 @@ const requestPromise = source =>
             parser.parseString(xml, (error, result) => {
               if (error) throw error;
 
-              if (result.html) return reject();
+              if (result.html) return reject("An error from remote.");
 
               if (!Array.isArray(result.rss.channel.item))
                 result.rss.channel.item = [result.rss.channel.item];
 
-              resolve(Markup.messages(result.rss.channel.item, source));
+              const maxDate = maxN(
+                result.rss.channel.item.map(el => new Date(el.pubDate))
+              );
+
+              Source.findOneAndUpdate(
+                { handler: source.handler },
+                { updated: maxDate },
+                { upsert: true }
+              ).then(doc => {
+                resolve(
+                  Markup.messages(
+                    result.rss.channel.item.filter(
+                      el => new Date(el.pubDate) > new Date(doc.updated)
+                    ),
+                    source
+                  )
+                );
+              });
             });
           } catch (error) {
             throw error;
@@ -135,5 +144,9 @@ const requestPromise = source =>
 
 const _has = (from, selector) =>
   selector.split(".").reduce((prev, cur) => prev && prev[cur], from);
+
+const maxN = (arr, n = 1) => [...arr].sort((a, b) => b - a).slice(0, n);
+
+const union = (a, b) => Array.from(new Set([...a, ...b]));
 
 module.exports = fetchXML;
