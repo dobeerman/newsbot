@@ -28,13 +28,13 @@ class Markup {
 }
 
 function buildMessage(element, options) {
-  let { chat_id, markup, addlink } = options;
+  let { chat_id, markup, addlink, handler } = options;
   let message = {};
 
   let msg = [
     getTitle(element),
     getDescription(element, options),
-    getCategory(element)
+    getCategory(element, handler)
   ];
 
   if (addlink) msg.push(getLink(element));
@@ -100,10 +100,12 @@ function getDescription(element, options) {
   return description;
 }
 
-function getCategory(element) {
+function getCategory(element, handler) {
   var { category } = element;
 
-  if (!category) return "";
+  if (!category) category = [];
+
+  category.unshift(handler);
 
   if (category.indexOf("/") > -1)
     category = category.split("/").filter(el => el.trim());
