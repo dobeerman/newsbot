@@ -10,7 +10,9 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "devstart": "nodemon --exec node src/index.js"
+    "devstart": "nodemon --exec node src/index.js",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "dependencies": {
     "bluebird": "^3.5.1",
@@ -27,9 +29,11 @@
     "lodash": "^4.17.4",
     "mongoose": "^5.0.0-rc1",
     "request": "^2.83.0",
-    "xml2js": "^0.4.19"
+    "xml2js": "^0.4.19",
+    "snyk": "^1.190.0"
   },
   "devDependencies": {
     "nodemon": "^1.14.7"
-  }
+  },
+  "snyk": true
 }
